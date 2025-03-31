@@ -13,4 +13,5 @@ authlib==1.2.1
 python-dotenv==1.0.1
 
 # OAuth2 로그인용
-streamlit-oauth>=0.2.5
+streamlit-oauth>=0.2.3
+
