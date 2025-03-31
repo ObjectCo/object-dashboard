@@ -37,13 +37,22 @@ if "code" not in st.query_params:  # 수정된 부분: query_params로 변경
     st.markdown(f"[🔐 Google 계정으로 로그인]({auth_url})", unsafe_allow_html=True)
     st.stop()
 
-# 콜백 처리
-code = st.query_params.get("code", [None])[0]  # 수정된 부분: query_params로 변경
+from urllib.parse import urlencode
+import streamlit.web.server.websocket_headers as websocket_headers
+
+# 현재 전체 요청 URL을 Google에 다시 보여주기 위해 가져옴
+current_url = websocket_headers._get_websocket_headers().get("Referer", "")
+
+# 콜백 처리 (query_params에서 code 추출)
+code = st.query_params.get("code", [None])[0]
+
+# 🔥 여기서 authorization_response에 반드시 전체 URL을 넘겨야 함
 token = oauth.fetch_token(
     token_url,
     code=code,
-    authorization_response=st.query_params  # 수정된 부분: query_params로 변경
+    authorization_response=current_url
 )
+
 
 # 사용자 정보 요청
 resp = oauth.get(userinfo_url)
