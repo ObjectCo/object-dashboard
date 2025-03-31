@@ -1,13 +1,9 @@
 streamlit==1.32.0
-gspread==5.12.0
 pandas==2.2.0
+gspread==5.12.0
 openai==1.13.3
-
-# Google Sheets용
-google-api-python-client==2.118.0
 google-auth==2.29.0
 google-auth-oauthlib==1.2.0
-
-# 로그인용
-authlib==1.2.1  # OAuth 인증을 위한 라이브러리
+google-api-python-client==2.118.0
+authlib==1.2.1
 python-dotenv==1.0.1
