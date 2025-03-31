@@ -15,7 +15,7 @@ COPY . .
 
 # pip 업그레이드 & 패키지 설치
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt  # 이곳에 'authlib' 포함된 파일 사용
 
 # 포트에 맞게 실행
 CMD streamlit run main.py --server.port=$PORT --server.address=0.0.0.0
