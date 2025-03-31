@@ -7,6 +7,3 @@ google-auth==2.29.0
 google-auth-oauthlib==1.2.0
 authlib==1.2.1
 python-dotenv==1.0.1
-
-# ✅ 변경된 이 부분
-streamlit-oauth>=0.2.3
