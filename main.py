@@ -43,10 +43,16 @@ import streamlit.web.server.websocket_headers as websocket_headers
 # 현재 전체 요청 URL을 Google에 다시 보여주기 위해 가져옴
 current_url = websocket_headers._get_websocket_headers().get("Referer", "")
 
-# 콜백 처리 (query_params에서 code 추출)
+from urllib.parse import urlencode
+import streamlit.web.server.websocket_headers as websocket_headers
+
+# 현재 redirect로 들어온 전체 URL 확보
+current_url = websocket_headers._get_websocket_headers().get("Referer", "")
+
+# 쿼리에서 code 추출
 code = st.query_params.get("code", [None])[0]
 
-# 🔥 여기서 authorization_response에 반드시 전체 URL을 넘겨야 함
+# access token 요청 (✅ redirect URI 전체 전달)
 token = oauth.fetch_token(
     token_url,
     code=code,
