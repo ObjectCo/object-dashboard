@@ -1,5 +1,3 @@
-# main.py (SaaS All-in-One Dashboard)
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -9,23 +7,18 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
 import json
+from authlib.integrations.requests_client import OAuth2Session
 
 # --- 기본 설정 ---
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
-import streamlit as st
-import os
-from authlib.integrations.requests_client import OAuth2Session
-from urllib.parse import urlencode, parse_qs
-import requests
-
-# 환경변수에서 클라이언트 정보 불러오기
+# --- OAuth2 인증 설정 ---
 client_id = os.getenv("GOOGLE_CLIENT_ID")
 client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
 
-# 로그인 URL 구성
+# 로그인 URL과 토큰 URL 구성
 authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
 token_url = "https://oauth2.googleapis.com/token"
 userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
@@ -63,7 +56,6 @@ if not email.endswith("@object-tex.com"):
     st.stop()
 
 st.success(f"👤 로그인됨: `{email}`")
-
 
 # --- GPT API 키 환경변수로 설정 ---
 openai.api_key = os.getenv("OPENAI_API_KEY")
