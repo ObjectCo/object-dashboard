@@ -13,12 +13,12 @@ from authlib.integrations.requests_client import OAuth2Session
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
-# --- OAuth2 인증 설정 ---
+# 환경변수에서 클라이언트 정보 불러오기
 client_id = os.getenv("GOOGLE_CLIENT_ID")
 client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
 
-# 로그인 URL과 토큰 URL 구성
+# 로그인 URL 구성
 authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
 token_url = "https://oauth2.googleapis.com/token"
 userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
@@ -32,17 +32,17 @@ oauth = OAuth2Session(
 )
 
 # 로그인 요청
-if "code" not in st.experimental_get_query_params():
+if "code" not in st.query_params:  # 수정된 부분: query_params로 변경
     auth_url, state = oauth.create_authorization_url(authorize_url)
     st.markdown(f"[🔐 Google 계정으로 로그인]({auth_url})", unsafe_allow_html=True)
     st.stop()
 
 # 콜백 처리
-code = st.experimental_get_query_params().get("code")[0]
+code = st.query_params.get("code", [None])[0]  # 수정된 부분: query_params로 변경
 token = oauth.fetch_token(
     token_url,
     code=code,
-    authorization_response=st.experimental_get_query_params()
+    authorization_response=st.query_params  # 수정된 부분: query_params로 변경
 )
 
 # 사용자 정보 요청
@@ -221,3 +221,4 @@ for i, (tab_name, sheet_name) in enumerate(sheet_map.items()):
                     prompt = f"{row.get('F BRAND NAME', '')} - {row.get('G ITEM NO.', '')}: {q}"
                     followup = generate_followup(prompt)
                     st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
+
