@@ -14,36 +14,56 @@ import json
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
-# --- 사용자 인증 (Google OAuth 기반 도메인 체크) ---
-from streamlit_oauth import OAuth2Component
+import streamlit as st
+import os
+from authlib.integrations.requests_client import OAuth2Session
+from urllib.parse import urlencode, parse_qs
+import requests
 
-# --- OAuth2 구성 ---
-oauth = OAuth2Component(
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    authorize_url="https://accounts.google.com/o/oauth2/v2/auth",
-    access_token_url="https://oauth2.googleapis.com/token",
-    redirect_uri=os.getenv("REDIRECT_URI"),  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
+# 환경변수에서 클라이언트 정보 불러오기
+client_id = os.getenv("GOOGLE_CLIENT_ID")
+client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
+
+# 로그인 URL 구성
+authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
+token_url = "https://oauth2.googleapis.com/token"
+userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+
+# 인증 세션 생성
+oauth = OAuth2Session(
+    client_id=client_id,
+    client_secret=client_secret,
+    redirect_uri=redirect_uri,
     scope="openid email profile"
 )
 
-# --- 로그인 버튼 ---
-token = oauth.authorize_button("🔐 Login with Google", "main")
-
-if token:
-    user_info = oauth.get_user_info(token)
-    email = user_info.get("email", "")
-    if not email.endswith("@object-tex.com"):
-        st.error("🚫 접근 권한 없음: @object-tex.com 이메일만 허용됩니다.")
-        st.stop()
-    else:
-        st.caption(f"👤 로그인됨: `{email}`")
-else:
-    st.warning("👉 Google 계정으로 로그인하세요.")
+# 로그인 요청
+if "code" not in st.experimental_get_query_params():
+    auth_url, state = oauth.create_authorization_url(authorize_url)
+    st.markdown(f"[🔐 Google 계정으로 로그인]({auth_url})", unsafe_allow_html=True)
     st.stop()
 
+# 콜백 처리
+code = st.experimental_get_query_params().get("code")[0]
+token = oauth.fetch_token(
+    token_url,
+    code=code,
+    authorization_response=st.experimental_get_query_params()
+)
 
-st.caption(f"👤 로그인: `{email}`")
+# 사용자 정보 요청
+resp = oauth.get(userinfo_url)
+user_info = resp.json()
+email = user_info.get("email", "")
+
+# 도메인 체크
+if not email.endswith("@object-tex.com"):
+    st.error("🚫 접근 권한 없음: @object-tex.com 이메일만 허용됩니다.")
+    st.stop()
+
+st.success(f"👤 로그인됨: `{email}`")
+
 
 # --- GPT API 키 환경변수로 설정 ---
 openai.api_key = os.getenv("OPENAI_API_KEY")
