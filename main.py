@@ -46,12 +46,15 @@ current_url = websocket_headers._get_websocket_headers().get("Referer", "")
 # code 추출
 code = st.query_params.get("code", [None])[0]
 
-# access token 요청 (💡 핵심: 전체 redirect URL 포함해서 전달)
+# access token 요청
 token = oauth.fetch_token(
     token_url,
     code=code,
     authorization_response=current_url
 )
+
+# ✅ 인증 끝났으면 URL 정리 (쿼리파라미터 제거) ← 이게 안 되면 로그인 후 새로고침할 때 오류남
+st.experimental_set_query_params()
 
 
 # 사용자 정보 요청
