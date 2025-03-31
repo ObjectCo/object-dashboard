@@ -15,12 +15,33 @@ st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
 # --- 사용자 인증 (Google OAuth 기반 도메인 체크) ---
-email = st.experimental_user.email if hasattr(st.experimental_user, "email") else None
-email_domain = os.getenv("ALLOWED_DOMAIN", "object-tex.com")  # 환경변수로 허용 도메인 관리
+from streamlit_oauth import OAuth2Component
 
-if not email or not email.endswith(f"@{email_domain}"):
-    st.error(f"🚫 접근 권한 없음: @{email_domain} 이메일로 로그인해주세요.")
+# --- OAuth2 구성 ---
+oauth = OAuth2Component(
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    authorize_url="https://accounts.google.com/o/oauth2/v2/auth",
+    access_token_url="https://oauth2.googleapis.com/token",
+    redirect_uri=os.getenv("REDIRECT_URI"),  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
+    scope="openid email profile"
+)
+
+# --- 로그인 버튼 ---
+token = oauth.authorize_button("🔐 Login with Google", "main")
+
+if token:
+    user_info = oauth.get_user_info(token)
+    email = user_info.get("email", "")
+    if not email.endswith("@object-tex.com"):
+        st.error("🚫 접근 권한 없음: @object-tex.com 이메일만 허용됩니다.")
+        st.stop()
+    else:
+        st.caption(f"👤 로그인됨: `{email}`")
+else:
+    st.warning("👉 Google 계정으로 로그인하세요.")
     st.stop()
+
 
 st.caption(f"👤 로그인: `{email}`")
 
