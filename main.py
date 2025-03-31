@@ -32,27 +32,21 @@ oauth = OAuth2Session(
 )
 
 # 로그인 요청
-if "code" not in st.query_params:  # 수정된 부분: query_params로 변경
+if "code" not in st.query_params:
     auth_url, state = oauth.create_authorization_url(authorize_url)
     st.markdown(f"[🔐 Google 계정으로 로그인]({auth_url})", unsafe_allow_html=True)
     st.stop()
 
-from urllib.parse import urlencode
+# ✅ 콜백 처리
 import streamlit.web.server.websocket_headers as websocket_headers
 
-# 현재 전체 요청 URL을 Google에 다시 보여주기 위해 가져옴
+# 현재 redirect된 전체 URL (쿼리 포함된 전체 URL)
 current_url = websocket_headers._get_websocket_headers().get("Referer", "")
 
-from urllib.parse import urlencode
-import streamlit.web.server.websocket_headers as websocket_headers
-
-# 현재 redirect로 들어온 전체 URL 확보
-current_url = websocket_headers._get_websocket_headers().get("Referer", "")
-
-# 쿼리에서 code 추출
+# code 추출
 code = st.query_params.get("code", [None])[0]
 
-# access token 요청 (✅ redirect URI 전체 전달)
+# access token 요청 (💡 핵심: 전체 redirect URL 포함해서 전달)
 token = oauth.fetch_token(
     token_url,
     code=code,
