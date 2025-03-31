@@ -1,0 +1,32 @@
+import base64
+import re
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from datetime import datetime, timedelta
+
+# Gmail API 회신 감지 로직 (서비스 계정은 delegate 필요)
+
+def check_replies(service_account_info, delegated_user, query="subject:INQUIRIES_ newer_than:7d"):
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=['https://www.googleapis.com/auth/gmail.readonly'],
+        subject=delegated_user
+    )
+    service = build('gmail', 'v1', credentials=credentials)
+
+    response = service.users().messages().list(userId='me', q=query).execute()
+    messages = response.get('messages', [])
+
+    results = []
+    for msg in messages:
+        data = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
+        headers = data['payload']['headers']
+        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '')
+        date_str = next((h['value'] for h in headers if h['name'] == 'Date'), '')
+        sender = next((h['value'] for h in headers if h['name'] == 'From'), '')
+        results.append({
+            "subject": subject,
+            "date": date_str,
+            "from": sender
+        })
+    return results
