@@ -12,5 +12,5 @@ google-auth-oauthlib==1.2.0
 authlib==1.2.1
 python-dotenv==1.0.1
 
-# OAuth2 로그인용 (PyPI에 없음 → GitHub에서 직접 설치)
-git+https://github.com/streamlit/streamlit-oauth.git
+# OAuth2 로그인용 (PyPI에 없음 → GitHub에서 main 브랜치 명시)
+git+https://github.com/streamlit/streamlit-oauth.git@main
