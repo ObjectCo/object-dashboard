@@ -2,15 +2,11 @@ streamlit==1.32.0
 gspread==5.12.0
 pandas==2.2.0
 openai==1.13.3
-
-# Google Sheets용
 google-api-python-client==2.118.0
 google-auth==2.29.0
 google-auth-oauthlib==1.2.0
-
-# 로그인용
 authlib==1.2.1
 python-dotenv==1.0.1
 
-# OAuth2 로그인용 (PyPI에 없음 → GitHub에서 main 브랜치 명시)
-git+https://github.com/streamlit/streamlit-oauth.git@main
+# ✅ 변경된 이 부분
+streamlit-oauth>=0.2.3
