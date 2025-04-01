@@ -41,7 +41,7 @@ try:
         code=code,
         authorization_response=authorization_response,
         client_secret=client_secret,
-        include_client_id=True
+
     )
     st.success("✅ 토큰 발급 성공")
     st.json(token)
