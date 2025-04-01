@@ -23,7 +23,7 @@ if not client_secret:
     st.stop()
 
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
-token_url = os.getenv("TOKEN_URL", "https://oauth2.googleapis.com/token")
+token_url = os.getenv("TOKEN_URL") or "https://oauth2.googleapis.com/token"
 st.write("✅ token_url:", token_url)  # ← 이 줄 추가
 st.write("🔍 client_id:", client_id)
 st.write("🔍 client_secret:", client_secret)
