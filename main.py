@@ -17,6 +17,11 @@ st.markdown("## 💼 Object 실시간 업무 대시보드")
 # 환경변수에서 클라이언트 정보 불러오기
 client_id = os.getenv("GOOGLE_CLIENT_ID")
 client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+
+if not client_secret:
+    st.error("❌ client_secret 환경변수가 비어있거나 None입니다. Secret Manager 설정 확인하세요.")
+    st.stop()
+
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
 token_url = os.getenv("TOKEN_URL", "https://oauth2.googleapis.com/token")
 st.write("✅ token_url:", token_url)  # ← 이 줄 추가
