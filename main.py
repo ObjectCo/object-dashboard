@@ -50,7 +50,14 @@ if "code" not in st.query_params:
 
 # ✅ 콜백 처리 (Redirect된 전체 URL 확보 후 전달)
 current_url = _get_websocket_headers().get("Referer", "")
-code = st.query_params.get("code", [None])[0]
+query_params = st.query_params
+code = query_params["code"][0] if "code" in query_params and query_params["code"] else None
+st.write("🔐 code:", code)
+
+if code is None:
+    st.error("❌ OAuth 인증 코드(code)가 없습니다. 다시 로그인해 주세요.")
+    st.stop()
+
 
 # 🔐 토큰 요청
 token = oauth.fetch_token(
