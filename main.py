@@ -6,10 +6,58 @@ import openai
 import json
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+from google.auth.oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+import pickle
+import requests
 
 # --- 페이지 설정 ---
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
+
+# --- Google OAuth 2.0 인증 ---
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+
+def google_oauth_login():
+    """구글 OAuth 2.0 인증 후, 인증 정보를 리턴하는 함수"""
+    creds = None
+    # 저장된 토큰이 있으면 로드
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    
+    # 인증이 없거나, 토큰이 만료된 경우 재인증
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secret.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+
+        # 인증 정보를 파일에 저장
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    return creds
+
+def access_google_sheets():
+    creds = google_oauth_login()
+    service = build('sheets', 'v4', credentials=creds)
+    spreadsheet_id = 'your_spreadsheet_id'  # 실제 스프레드시트 ID로 교체
+    range_ = 'Sheet1!A1:D10'  # 읽을 셀 범위
+
+    sheet = service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_).execute()
+    values = result.get('values', [])
+
+    if not values:
+        print('No data found.')
+    else:
+        print('Data:')
+        for row in values:
+            print(', '.join(row))
 
 # 로그인 여부 확인
 if "logged_in" not in st.session_state:
@@ -41,14 +89,8 @@ if st.session_state["logged_in"]:
     # --- GPT API 키 설정 ---
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    # --- 서비스 계정 인증 ---
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    service_account_info = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON", "{}"))
-    credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scope)
-    gc = gspread.authorize(credentials)
-
-    # 스프레드시트 ID
-    spreadsheet_id = os.getenv("SPREADSHEET_ID")
+    # --- Google OAuth 인증 및 시트 접근 ---
+    access_google_sheets()  # 구글 시트 데이터 읽기
 
     # 탭 설정
     sheet_map = {
@@ -96,23 +138,6 @@ if st.session_state["logged_in"]:
             return response.choices[0].message.content.strip()
         except Exception as e:
             return f"[GPT ERROR] {e}"
-
-    # Gmail 회신 여부 확인
-    def check_recent_gmail(subject_keyword, days=7):
-        try:
-            delegated_user = email
-            creds = service_account.Credentials.from_service_account_info(
-                service_account_info,
-                scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-                subject=delegated_user
-            )
-            service = build("gmail", "v1", credentials=creds)
-            query = f"subject:{subject_keyword} newer_than:{days}d"
-            response = service.users().messages().list(userId='me', q=query).execute()
-            messages = response.get("messages", [])
-            return len(messages) > 0
-        except:
-            return False
 
     # 탭별 처리
     for i, (tab_name, sheet_name) in enumerate(sheet_map.items()):
@@ -188,6 +213,4 @@ if st.session_state["logged_in"]:
                         st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
 else:
     st.error("🚫 로그인 실패")
-
-
 
