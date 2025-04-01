@@ -65,7 +65,8 @@ st.write("🔥 DEBUG - client_secret before fetch_token:", client_secret)
 token = oauth.fetch_token(
     token_url=token_url,
     code=code,
-    authorization_response=authorization_response
+    authorization_response=authorization_response,
+    client_secret=client_secret  # ✅ 직접 명시
 )
 
 
