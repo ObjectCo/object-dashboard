@@ -61,12 +61,13 @@ authorization_response = f"{redirect_uri}?code={code}"
 st.write("🔁 authorization_response:", authorization_response)
 
 st.write("🔥 DEBUG - client_secret before fetch_token:", client_secret)
+
 # 🔐 토큰 요청
 token = oauth.fetch_token(
-    token_url=token_url,
+    url=token_url,  # ← 요 줄이 핵심! 반드시 url=
     code=code,
     authorization_response=authorization_response,
-    client_secret=client_secret  # ✅ 직접 명시
+    client_secret=client_secret  # 이건 잘했어
 )
 
 
