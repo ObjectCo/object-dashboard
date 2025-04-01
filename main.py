@@ -48,31 +48,25 @@ if "code" not in st.query_params:
     st.markdown(f"[🔐 Google 계정으로 로그인]({auth_url})", unsafe_allow_html=True)
     st.stop()
 
-# ✅ 콜백 처리 (Redirect된 전체 URL 확보 후 전달)
-current_url = _get_websocket_headers().get("Referer")
-
-st.write("🌐 current_url:", current_url)
-
-if not current_url or not current_url.startswith("http"):
-    st.error("❌ 현재 URL을 가져오지 못했습니다. Cloud Run 환경에선 `_get_websocket_headers()`가 작동 안 할 수도 있음.")
-    st.stop()
-
-
-query_params = st.query_params
-code = query_params["code"][0] if "code" in query_params and query_params["code"] else None
+# ✅ 콜백 처리 (Cloud Run 호환)
+code = st.query_params.get("code", [None])[0]
 st.write("🔐 code:", code)
 
-if code is None:
-    st.error("❌ OAuth 인증 코드(code)가 없습니다. 다시 로그인해 주세요.")
+if not code:
+    st.error("❌ OAuth 인증 코드가 없습니다. 다시 로그인해 주세요.")
     st.stop()
 
+# ✅ current_url 대신 redirect_uri + code 조합
+authorization_response = f"{redirect_uri}?code={code}"
+st.write("🔁 authorization_response:", authorization_response)
 
 # 🔐 토큰 요청
 token = oauth.fetch_token(
     token_url=token_url,
     code=code,
-    authorization_response=current_url
+    authorization_response=authorization_response
 )
+
 
 # ✅ 인증 완료 후 쿼리파라미터 정리
 st.experimental_set_query_params()
