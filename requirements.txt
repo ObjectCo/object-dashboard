@@ -7,4 +7,4 @@ google-auth-oauthlib==1.2.0
 google-api-python-client==2.118.0
 authlib==1.2.1
 python-dotenv==1.0.1
-requests==2.26.0
+requests==2.27.1  # 요청 버전 수정
