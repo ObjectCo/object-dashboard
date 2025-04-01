@@ -6,58 +6,61 @@ import openai
 import json
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from streamlit.web.server.websocket_headers import _get_websocket_headers
+from google.auth.oauthlib.flow import InstalledAppFlow
+import requests
 
 # --- 페이지 설정 ---
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
-# 로그인 여부 확인
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
+# --- Google OAuth 2.0 인증 ---
+CLIENT_SECRETS_FILE = "path_to_your_client_secrets.json"  # 구글 OAuth 클라이언트 시크릿 파일 경로
+SCOPES = ['https://www.googleapis.com/auth/userinfo.profile']
 
-# 로그인 화면
-if not st.session_state["logged_in"]:
-    email = st.text_input("✉️ 이메일을 입력하세요")
-    password = st.text_input("🔒 비밀번호", type="password")
+# Google OAuth 인증
+def authenticate_with_google():
+    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+    credentials = flow.run_local_server(port=0)
+    
+    if credentials and credentials.valid:
+        return credentials
+    else:
+        return None
 
-    if st.button("로그인"):
-        # 이메일 도메인 확인 및 비밀번호 체크
-        if email.endswith("@object-tex.com") and password == "your-secret-password":  # 비밀번호는 예시로 넣은 값
-            st.session_state["logged_in"] = True
-            st.success("🎉 로그인 성공")
-        else:
-            st.error("🚫 로그인 실패")
+credentials = authenticate_with_google()
 
-# 로그인 후 페이지 내용
-if st.session_state["logged_in"]:
-    # ✅ IAP 인증된 사용자 이메일 가져오기
-    email = _get_websocket_headers().get("X-Goog-Authenticated-User-Email", "")
-    email = email.replace("accounts.google.com:", "")  # 이메일 주소만 추출
+if credentials:
+    from google.auth.transport.requests import Request
+    # 구글 사용자 정보 가져오기
+    user_info = requests.get(
+        'https://www.googleapis.com/oauth2/v1/userinfo',
+        headers={'Authorization': f'Bearer {credentials.token}'}
+    ).json()
 
-    # ✅ 이메일 출력 (디버깅용)
-    st.write(f"👤 로그인됨: `{email}`")
+    email = user_info['email']
+    st.write(f"👤 로그인된 사용자: `{email}`")
 
-    # ✅ 도메인 제한
-    ALLOWED_DOMAINS = ["object-tex.com", "anotherdomain.com"]  # 허용할 도메인 추가
+    # --- 도메인 제한 ---
+    ALLOWED_DOMAINS = ["object-tex.com", "anotherdomain.com"]
     if not any(email.endswith(domain) for domain in ALLOWED_DOMAINS):
         st.error(f"🚫 접근 권한 없음: {', '.join(ALLOWED_DOMAINS)} 이메일만 허용됩니다.")
         st.stop()
 
-    # ✅ GPT API 키 설정
+    # --- GPT API 키 설정 ---
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    # ✅ 서비스 계정 인증
+    # --- 서비스 계정 인증 ---
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     service_account_info = json.loads(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON", "{}"))
     credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=scope)
     gc = gspread.authorize(credentials)
 
-    # ✅ 스프레드시트 ID
+    # 스프레드시트 ID
     spreadsheet_id = os.getenv("SPREADSHEET_ID")
 
-    # ✅ 탭 설정
+    # 탭 설정
     sheet_map = {
         "기본문의": "25.03 기본문의(자동화)",
         "스와치": "25.03 스와치(자동화)",
@@ -67,7 +70,7 @@ if st.session_state["logged_in"]:
 
     tabs = st.tabs([f"📁 {label}" for label in sheet_map])
 
-    # ✅ 상태 색상 강조 함수
+    # 상태 색상 강조 함수
     def highlight_status(val):
         if isinstance(val, str):
             if "완료" in val or "회신" in val:
@@ -78,7 +81,7 @@ if st.session_state["logged_in"]:
                 return "background-color: #fff5cc"
         return ""
 
-    # ✅ GPT 요약
+    # GPT 요약
     def generate_summary(text):
         prompt = f"""Please summarize the following Korean business sentence into polite English suitable for emailing suppliers. Remove unnecessary detail:\n\n\"{text}\""""
         try:
@@ -91,7 +94,7 @@ if st.session_state["logged_in"]:
         except Exception as e:
             return f"[GPT ERROR] {e}"
 
-    # ✅ GPT 재문의
+    # GPT 재문의
     def generate_followup(context):
         prompt = f"""Write a follow-up email in English asking the supplier to kindly reply as soon as possible. Context: {context}"""
         try:
@@ -104,7 +107,7 @@ if st.session_state["logged_in"]:
         except Exception as e:
             return f"[GPT ERROR] {e}"
 
-    # ✅ Gmail 회신 여부 확인
+    # Gmail 회신 여부 확인
     def check_recent_gmail(subject_keyword, days=7):
         try:
             delegated_user = email
@@ -121,7 +124,7 @@ if st.session_state["logged_in"]:
         except:
             return False
 
-    # ✅ 탭별 처리
+    # 탭별 처리
     for i, (tab_name, sheet_name) in enumerate(sheet_map.items()):
         with tabs[i]:
             try:
@@ -193,3 +196,6 @@ if st.session_state["logged_in"]:
                         prompt = f"{row.get('F BRAND NAME', '')} - {row.get('G ITEM NO.', '')}: {q}"
                         followup = generate_followup(prompt)
                         st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
+else:
+    st.error("🚫 로그인 실패")
+
