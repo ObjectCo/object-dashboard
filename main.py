@@ -14,10 +14,9 @@ userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
 st.set_page_config(layout="centered")
 st.title("🔐 Google OAuth 최소 예제")
 
-# ✅ OAuth 세션
+# ✅ OAuth 세션 생성 (client_secret 빼고 생성)
 oauth = OAuth2Session(
     client_id=client_id,
-    client_secret=client_secret,
     redirect_uri=redirect_uri,
     scope="openid email profile"
 )
@@ -34,15 +33,13 @@ st.write("✅ 인증 코드:", code)
 
 authorization_response = f"{redirect_uri}?code={code}"
 
-# ✅ 토큰 발급
-try:
-    token = oauth.fetch_token(
-        url=token_url,
-        code=code,
-        authorization_response=authorization_response,
-        client_secret=client_secret,
-
-    )
+# ✅ 토큰 요청 (client_secret은 여기서만)
+token = oauth.fetch_token(
+    url=token_url,
+    code=code,
+    authorization_response=authorization_response,
+    client_secret=client_secret,
+)
     st.success("✅ 토큰 발급 성공")
     st.json(token)
 
