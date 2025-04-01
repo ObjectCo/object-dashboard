@@ -69,9 +69,10 @@ st.write("🔥 DEBUG - client_secret before fetch_token:", client_secret)
 
 # 🔐 토큰 요청
 token = oauth.fetch_token(
-    url=token_url,  # ✅ 핵심: 반드시 'url='로 써야 함!
+    url=token_url,  # ✅ 요거 중요
     code=code,
     authorization_response=authorization_response,
+    client_id=client_id,
     client_secret=client_secret,
     include_client_id=True
 )
