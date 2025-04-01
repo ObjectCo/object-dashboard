@@ -1,6 +1,5 @@
 # Python 버전 선택 (여기서는 Python 3.10을 사용)
 FROM python:3.10-slim
-
 # 환경변수 설정
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
