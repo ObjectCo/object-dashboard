@@ -1,5 +1,6 @@
 # Python 버전 선택 (여기서는 Python 3.10을 사용)
 FROM python:3.10-slim
+
 # 환경변수 설정
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -15,7 +16,7 @@ COPY . .
 
 # pip 업그레이드 및 의존성 설치
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt  # requirements.txt에서 필요한 라이브러리 설치
 
-# 앱 실행 명령 (Cloud Run에서의 포트 번호는 자동으로 설정되므로,환경 변수로 받아옴)
+# 앱 실행 명령 (Cloud Run에서의 포트 번호는 자동으로 설정되므로, 환경 변수로 받아옴)
 CMD streamlit run main.py --server.port=$PORT --server.address=0.0.0.0
