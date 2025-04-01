@@ -20,6 +20,10 @@ client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
 token_url = os.getenv("TOKEN_URL", "https://oauth2.googleapis.com/token")
 st.write("✅ token_url:", token_url)  # ← 이 줄 추가
+st.write("🔍 client_id:", client_id)
+st.write("🔍 client_secret:", client_secret)
+st.write("🔍 redirect_uri:", redirect_uri)
+
 
 # ⛔ 방어 코드 추가: token_url 없을 때 멈춤
 if not token_url or not token_url.startswith("http"):
