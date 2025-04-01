@@ -19,8 +19,12 @@ client_id = os.getenv("GOOGLE_CLIENT_ID")
 client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URI")  # 예: "https://object-dashboard-xyz12345-uc.a.run.app"
 token_url = os.getenv("TOKEN_URL", "https://oauth2.googleapis.com/token")
-
 st.write("✅ token_url:", token_url)  # ← 이 줄 추가
+
+# ⛔ 방어 코드 추가: token_url 없을 때 멈춤
+if not token_url or not token_url.startswith("http"):
+    st.error("❌ token_url이 비어있거나 잘못됨. 환경변수 'TOKEN_URL' 확인 필요.")
+    st.stop()
 
 # 로그인 URL 구성
 authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
