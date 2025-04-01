@@ -60,6 +60,7 @@ if not code:
 authorization_response = f"{redirect_uri}?code={code}"
 st.write("🔁 authorization_response:", authorization_response)
 
+st.write("🔥 DEBUG - client_secret before fetch_token:", client_secret)
 # 🔐 토큰 요청
 token = oauth.fetch_token(
     token_url=token_url,
