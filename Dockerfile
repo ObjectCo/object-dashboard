@@ -18,5 +18,5 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# 앱 실행 명령 (Cloud Run에서의 포트 번호는 자동으로 설정되므로, 환경 변수로 받아옴)
+# 앱 실행 명령 (Cloud Run에서의 포트 번호는 자동으로 설정되므로,환경 변수로 받아옴)
 CMD streamlit run main.py --server.port=$PORT --server.address=0.0.0.0
