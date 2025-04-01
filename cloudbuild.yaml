@@ -1,0 +1,31 @@
+steps:
+  # Docker 이미지 빌드
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/my-app'
+      - '.'
+
+  # Docker 이미지 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/my-app'
+
+  # Cloud Run에 배포
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'my-app'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/my-app'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'asia-northeast3'  # 배포할 지역 설정
+      - '--allow-unauthenticated'
+
+timeout: 1200s
