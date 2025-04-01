@@ -6,7 +6,6 @@ import openai
 import json
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
-import requests
 
 # --- 페이지 설정 ---
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
@@ -23,7 +22,7 @@ if not st.session_state["logged_in"]:
 
     if st.button("로그인"):
         # 이메일 도메인 확인 및 비밀번호 체크
-        if email.endswith("@object-tex.com") and password == "your-secret-password":  # 비밀번호는 예시로 넣은 값
+        if email == "chan@object-tex.com" and password == "1234":  # 설정된 이메일과 비밀번호
             st.session_state["logged_in"] = True
             st.success("🎉 로그인 성공")
         else:
@@ -31,11 +30,10 @@ if not st.session_state["logged_in"]:
 
 # 로그인 후 페이지 내용
 if st.session_state["logged_in"]:
-    # 인증된 사용자의 이메일 정보 (디버깅용)
     st.write(f"👤 로그인된 사용자: `{email}`")
 
     # --- 도메인 제한 ---
-    ALLOWED_DOMAINS = ["object-tex.com"]  # 허용할 도메인 추가
+    ALLOWED_DOMAINS = ["object-tex.com"]
     if not any(email.endswith(domain) for domain in ALLOWED_DOMAINS):
         st.error(f"🚫 접근 권한 없음: {', '.join(ALLOWED_DOMAINS)} 이메일만 허용됩니다.")
         st.stop()
@@ -190,5 +188,6 @@ if st.session_state["logged_in"]:
                         st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
 else:
     st.error("🚫 로그인 실패")
+
 
 
