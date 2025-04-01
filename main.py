@@ -55,9 +55,10 @@ if st.session_state["logged_in"]:
     sheet_map = {
         "기본문의": "25.03 기본문의(자동화)",
         "스와치": "25.03 스와치(자동화)",
-        "ORDER LIST": "25.03 ORDER LIST",
-        "HOLDING LIST": "25 Holding list"
+        "ORDER LIST": "25.04 ORDER LIST",  # 여기 수정
+        "HOLDING LIST": "25.04 HOLDING LIST"  # 여기 수정
     }
+
 
     tabs = st.tabs([f"📁 {label}" for label in sheet_map])
 
