@@ -49,7 +49,14 @@ if "code" not in st.query_params:
     st.stop()
 
 # ✅ 콜백 처리 (Redirect된 전체 URL 확보 후 전달)
-current_url = _get_websocket_headers().get("Referer", "")
+current_url = _get_websocket_headers().get("Referer")
+
+st.write("🌐 current_url:", current_url)
+
+if not current_url or not current_url.startswith("http"):
+    st.error("❌ 현재 URL을 가져오지 못했습니다. Cloud Run 환경에선 `_get_websocket_headers()`가 작동 안 할 수도 있음.")
+    st.stop()
+
 
 query_params = st.query_params
 code = query_params["code"][0] if "code" in query_params and query_params["code"] else None
