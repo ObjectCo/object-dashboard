@@ -24,7 +24,6 @@ st.write("✅ token_url:", token_url)  # ← 이 줄 추가
 
 # 로그인 URL 구성
 authorize_url = "https://accounts.google.com/o/oauth2/v2/auth"
-token_url = "https://oauth2.googleapis.com/token"
 userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
 
 # 인증 세션 생성
