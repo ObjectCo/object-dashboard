@@ -22,7 +22,8 @@ SCOPES = ['https://www.googleapis.com/auth/userinfo.profile']
 # Google OAuth 인증
 def authenticate_with_google():
     flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    credentials = flow.run_local_server(port=0)
+    flow.redirect_uri = 'https://object-dashboard-619716889863.asia-northeast3.run.app'  # Cloud Run 리디렉션 URI 설정
+    credentials = flow.run_local_server(port=0)  # 클라우드 환경에서 로컬 서버 없이 진행됨
     
     if credentials and credentials.valid:
         return credentials
@@ -32,8 +33,7 @@ def authenticate_with_google():
 credentials = authenticate_with_google()
 
 if credentials:
-    from google.auth.transport.requests import Request
-    # 구글 사용자 정보 가져오기
+    # 인증된 사용자의 이메일 정보 가져오기
     user_info = requests.get(
         'https://www.googleapis.com/oauth2/v1/userinfo',
         headers={'Authorization': f'Bearer {credentials.token}'}
