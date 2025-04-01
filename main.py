@@ -6,44 +6,36 @@ import openai
 import json
 from datetime import datetime, timedelta
 from google.oauth2 import service_account
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
-from google.auth.oauthlib.flow import InstalledAppFlow
 import requests
 
 # --- 페이지 설정 ---
 st.set_page_config(page_title="Object Dashboard Pro", layout="wide")
 st.markdown("## 💼 Object 실시간 업무 대시보드")
 
-# --- Google OAuth 2.0 인증 ---
-CLIENT_SECRETS_FILE = "path_to_your_client_secrets.json"  # 구글 OAuth 클라이언트 시크릿 파일 경로
-SCOPES = ['https://www.googleapis.com/auth/userinfo.profile']
+# 로그인 여부 확인
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
 
-# Google OAuth 인증
-def authenticate_with_google():
-    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    flow.redirect_uri = 'https://object-dashboard-619716889863.asia-northeast3.run.app'  # Cloud Run 리디렉션 URI 설정
-    credentials = flow.run_local_server(port=0)  # 클라우드 환경에서 로컬 서버 없이 진행됨
-    
-    if credentials and credentials.valid:
-        return credentials
-    else:
-        return None
+# 로그인 화면
+if not st.session_state["logged_in"]:
+    email = st.text_input("✉️ 이메일을 입력하세요")
+    password = st.text_input("🔒 비밀번호", type="password")
 
-credentials = authenticate_with_google()
+    if st.button("로그인"):
+        # 이메일 도메인 확인 및 비밀번호 체크
+        if email.endswith("@object-tex.com") and password == "your-secret-password":  # 비밀번호는 예시로 넣은 값
+            st.session_state["logged_in"] = True
+            st.success("🎉 로그인 성공")
+        else:
+            st.error("🚫 로그인 실패")
 
-if credentials:
-    # 인증된 사용자의 이메일 정보 가져오기
-    user_info = requests.get(
-        'https://www.googleapis.com/oauth2/v1/userinfo',
-        headers={'Authorization': f'Bearer {credentials.token}'}
-    ).json()
-
-    email = user_info['email']
+# 로그인 후 페이지 내용
+if st.session_state["logged_in"]:
+    # 인증된 사용자의 이메일 정보 (디버깅용)
     st.write(f"👤 로그인된 사용자: `{email}`")
 
     # --- 도메인 제한 ---
-    ALLOWED_DOMAINS = ["object-tex.com", "anotherdomain.com"]
+    ALLOWED_DOMAINS = ["object-tex.com"]  # 허용할 도메인 추가
     if not any(email.endswith(domain) for domain in ALLOWED_DOMAINS):
         st.error(f"🚫 접근 권한 없음: {', '.join(ALLOWED_DOMAINS)} 이메일만 허용됩니다.")
         st.stop()
@@ -198,4 +190,5 @@ if credentials:
                         st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
 else:
     st.error("🚫 로그인 실패")
+
 
