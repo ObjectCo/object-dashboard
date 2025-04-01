@@ -17,11 +17,13 @@ st.markdown("## 💼 Object 실시간 업무 대시보드")
 email = _get_websocket_headers().get("X-Goog-Authenticated-User-Email", "")
 email = email.replace("accounts.google.com:", "")  # 이메일 주소만 추출
 
+# ✅ 이메일 출력 (디버깅용)
 st.write(f"👤 로그인됨: `{email}`")
 
 # ✅ 도메인 제한
-if not email.endswith("@object-tex.com"):
-    st.error("🚫 접근 권한 없음: @object-tex.com 이메일만 허용됩니다.")
+ALLOWED_DOMAINS = ["object-tex.com", "anotherdomain.com"]  # 허용할 도메인 추가
+if not any(email.endswith(domain) for domain in ALLOWED_DOMAINS):
+    st.error(f"🚫 접근 권한 없음: {', '.join(ALLOWED_DOMAINS)} 이메일만 허용됩니다.")
     st.stop()
 
 # ✅ GPT API 키 설정
@@ -165,6 +167,14 @@ for i, (tab_name, sheet_name) in enumerate(sheet_map.items()):
                     st.write(f"• `{row.get('G ITEM NO.', '')}`: {summary}")
 
         if "R 추가 문의" in df.columns:
+            st.markdown("### ✉️ GPT 재문의 문장 생성")
+            for idx, row in df.iterrows():
+                q = str(row.get("R 추가 문의", "")).strip()
+                if q:
+                    prompt = f"{row.get('F BRAND NAME', '')} - {row.get('G ITEM NO.', '')}: {q}"
+                    followup = generate_followup(prompt)
+                    st.write(f"• `{row.get('G ITEM NO.', '')}`: {followup}")
+
             st.markdown("### ✉️ GPT 재문의 문장 생성")
             for idx, row in df.iterrows():
                 q = str(row.get("R 추가 문의", "")).strip()
